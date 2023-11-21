@@ -27,19 +27,17 @@
 /* entry for buffer lookup hashtable */
 typedef struct
 {
-	BufferTag	key;			/* Tag of a disk page */
-	int			id;				/* Associated buffer ID */
+	BufferTag key; /* Tag of a disk page */
+	int id;		   /* Associated buffer ID */
 } BufferLookupEnt;
 
 static HTAB *SharedBufHash;
-
 
 /*
  * Estimate space needed for mapping hashtable
  *		size is the desired hash table size (possibly more than NBuffers)
  */
-Size
-BufTableShmemSize(int size)
+Size BufTableShmemSize(int size)
 {
 	return hash_estimate_size(size, sizeof(BufferLookupEnt));
 }
@@ -48,10 +46,9 @@ BufTableShmemSize(int size)
  * Initialize shmem hash table for mapping buffers
  *		size is the desired hash table size (possibly more than NBuffers)
  */
-void
-InitBufTable(int size)
+void InitBufTable(int size)
 {
-	HASHCTL		info;
+	HASHCTL info;
 
 	/* assume no locking is needed yet */
 
@@ -78,7 +75,7 @@ InitBufTable(int size)
 uint32
 BufTableHashCode(BufferTag *tagPtr)
 {
-	return get_hash_value(SharedBufHash, (void *) tagPtr);
+	return get_hash_value(SharedBufHash, (void *)tagPtr);
 }
 
 /*
@@ -87,8 +84,7 @@ BufTableHashCode(BufferTag *tagPtr)
  *
  * Caller must hold at least share lock on BufMappingLock for tag's partition
  */
-int
-BufTableLookup(BufferTag *tagPtr, uint32 hashcode)
+int BufTableLookup(BufferTag *tagPtr, uint32 hashcode)
 {
 	BufferLookupEnt *result;
 
@@ -115,14 +111,13 @@ BufTableLookup(BufferTag *tagPtr, uint32 hashcode)
  *
  * Caller must hold exclusive lock on BufMappingLock for tag's partition
  */
-int
-BufTableInsert(BufferTag *tagPtr, uint32 hashcode, int buf_id)
+int BufTableInsert(BufferTag *tagPtr, uint32 hashcode, int buf_id)
 {
 	BufferLookupEnt *result;
-	bool		found;
+	bool found;
 
-	Assert(buf_id >= 0);		/* -1 is reserved for not-in-table */
-	Assert(tagPtr->blockNum != P_NEW);	/* invalid tag */
+	Assert(buf_id >= 0);			   /* -1 is reserved for not-in-table */
+	Assert(tagPtr->blockNum != P_NEW); /* invalid tag */
 
 	result = (BufferLookupEnt *)
 		hash_search_with_hash_value(SharedBufHash,
@@ -131,7 +126,7 @@ BufTableInsert(BufferTag *tagPtr, uint32 hashcode, int buf_id)
 									HASH_ENTER,
 									&found);
 
-	if (found)					/* found something already in the table */
+	if (found) /* found something already in the table */
 		return result->id;
 
 	result->id = buf_id;
@@ -145,8 +140,7 @@ BufTableInsert(BufferTag *tagPtr, uint32 hashcode, int buf_id)
  *
  * Caller must hold exclusive lock on BufMappingLock for tag's partition
  */
-void
-BufTableDelete(BufferTag *tagPtr, uint32 hashcode)
+void BufTableDelete(BufferTag *tagPtr, uint32 hashcode)
 {
 	BufferLookupEnt *result;
 
@@ -157,6 +151,6 @@ BufTableDelete(BufferTag *tagPtr, uint32 hashcode)
 									HASH_REMOVE,
 									NULL);
 
-	if (!result)				/* shouldn't happen */
+	if (!result) /* shouldn't happen */
 		elog(ERROR, "shared buffer hash table corrupted");
 }

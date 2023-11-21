@@ -19,11 +19,10 @@
 #include "storage/proc.h"
 
 BufferDescPadded *BufferDescriptors;
-char	   *BufferBlocks;
+char *BufferBlocks;
 ConditionVariableMinimallyPadded *BufferIOCVArray;
 WritebackContext BackendWritebackContext;
 CkptSortItem *CkptBufferIds;
-
 
 /*
  * Data Structures:
@@ -57,20 +56,18 @@ CkptSortItem *CkptBufferIds;
  *		multiple times. Check the PrivateRefCount infrastructure in bufmgr.c.
  */
 
-
 /*
  * Initialize shared buffer pool
  *
  * This is called once during shared-memory initialization (either in the
  * postmaster, or in a standalone backend).
  */
-void
-InitBufferPool(void)
+void InitBufferPool(void)
 {
-	bool		foundBufs,
-				foundDescs,
-				foundIOCV,
-				foundBufCkpt;
+	bool foundBufs,
+		foundDescs,
+		foundIOCV,
+		foundBufCkpt;
 
 	/* Align descriptors to a cacheline boundary. */
 	BufferDescriptors = (BufferDescPadded *)
@@ -82,7 +79,7 @@ InitBufferPool(void)
 	BufferBlocks = (char *)
 		TYPEALIGN(PG_IO_ALIGN_SIZE,
 				  ShmemInitStruct("Buffer Blocks",
-								  NBuffers * (Size) BLCKSZ + PG_IO_ALIGN_SIZE,
+								  NBuffers * (Size)BLCKSZ + PG_IO_ALIGN_SIZE,
 								  &foundBufs));
 
 	/* Align condition variables to cacheline boundary. */
@@ -110,7 +107,7 @@ InitBufferPool(void)
 	}
 	else
 	{
-		int			i;
+		int i;
 
 		/*
 		 * Initialize all the buffer headers.
@@ -132,7 +129,7 @@ InitBufferPool(void)
 			 * management of this list is done by freelist.c.
 			 */
 			buf->freeNext = i + 1;
-			
+
 			LWLockInitialize(BufferDescriptorGetContentLock(buf),
 							 LWTRANCHE_BUFFER_CONTENT);
 
@@ -157,10 +154,9 @@ InitBufferPool(void)
  * compute the size of shared memory for the buffer pool including
  * data pages, buffer descriptors, hash tables, etc.
  */
-Size
-BufferShmemSize(void)
+Size BufferShmemSize(void)
 {
-	Size		size = 0;
+	Size size = 0;
 
 	/* size of buffer descriptors */
 	size = add_size(size, mul_size(NBuffers, sizeof(BufferDescPadded)));
